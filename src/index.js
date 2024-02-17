@@ -17,34 +17,65 @@ app.get('/example', (req, res) => {
   res.send('Express + TypeScript Server');
 });
 
+
+const lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in suscipit purus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vivamus nec hendrerit felis. Morbi aliquam facilisis risus eu lacinia. Sed eu leo in turpis fringilla hendrerit. Ut nec accumsan nisl. Suspendisse rhoncus nisl posuere tortor tempus et dapibus elit porta. Cras leo neque, elementum a rhoncus ut, vestibulum non nibh. Phasellus pretium justo turpis. Etiam vulputate, odio vitae tincidunt ultricies, eros odio dapibus nisi, ut tincidunt lacus arcu eu elit. Aenean velit erat, vehicula eget lacinia ut, dignissim non tellus. Aliquam nec lacus mi, sed vestibulum nunc. Suspendisse potenti. Curabitur vitae sem turpis. Vestibulum sed neque eget dolor dapibus porttitor at sit amet sem. Fusce a turpis lorem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;';
+
 // get pdf
 app.get('/', (req, res) => {
-  const lorem = "Lorem ipsum dolor si amet."
   
-  const doc = new PDFDocument();
-  doc.fontSize(20);
-  doc.text('Hello world!', 24, 24, {align: 'right'})
+  const doc = new PDFDocument({autoFirstPage: false, size: 'A4', layout: 'portrait', margins: {
+      top: 50,
+      bottom: 50,
+      left: 72,
+      right: 72
+
+  }});
+  doc.fontSize(12);
+  doc.addPage({margin: 50})
+  doc
+  .fillColor('#666')
+  .text('Date: 01.01.2024', 24, 24, {
+    align: 'right',
+    width: doc.width
+  })
   
 
-  doc.moveDown();
-  doc.text(`This text is centered. ${lorem}`, {
-    width: 410,
-    align: 'center'
-  }
-  );
+  doc.moveDown(5);
+
 
   doc
-  .fillColor('green')
-  .text(`This text is centered. ${lorem}`, {
-    width: 666,
-    align: 'right',
-    justify: 'start'
+  .fontSize(24)
+  .fillColor('#111')
+  .text(`Example name of PDF file`, {
+    width: doc.width,
+    align: 'center'
   }
-  );
+  ).moveDown(0.2);
+
+  doc
+  .fontSize(16)
+  .fillColor('#666')
+  .text(`123-abC`, {
+    width: doc.width,
+    align: 'center'
+  }
+  )
+  .moveDown(2);
+
+  doc
+  .fontSize(16)
+  .fillColor('black')
+  .text(lorem.slice(0, 555), {
+    width: doc.width,
+    align: 'left',
+    justify: 'end',
+    continued: true
+  }
+  ).moveDown(0.3);
 
 
-// draw bounding rectangle
-  doc.rect(doc.x, doc.x, doc.x, doc.y).stroke();
+  // draw bounding rectangle
+  // doc.rect(doc.x, doc.x, doc.x, doc.y).stroke();
     doc.end();
     doc.pipe(res);
 });
@@ -53,13 +84,55 @@ app.get('/', (req, res) => {
 // get /blob
 app.post('/', jsonParser, (req, res) => {
   const data = req.body
-  console.log(data)
+  const doc = new PDFDocument({autoFirstPage: false, size: 'A4', layout: 'portrait', margins: {
+    top: 50,
+    bottom: 50,
+    left: 72,
+    right: 72
 
-  const doc = new PDFDocument();
-  doc.fontSize(24);
-  doc.text(`${data.id} - ${data.name}`, 100, 100)
-  doc.end();
-  doc.pipe(res);
+}});
+doc.fontSize(12);
+doc.addPage({margin: 50})
+doc
+.fillColor('#666')
+.text(`${data.date}`, 24, 24, {
+  align: 'right',
+  width: doc.width
+}).moveDown(5);
+
+doc
+.fontSize(24)
+.fillColor('#111')
+.text(`${data.name}`, {
+  width: doc.width,
+  align: 'center'
+}
+).moveDown(0.2);
+
+doc
+.fontSize(16)
+.fillColor('#666')
+.text(`${data.id}`, {
+  width: doc.width,
+  align: 'center'
+}
+)
+.moveDown(2);
+
+doc
+.fontSize(16)
+.fillColor('black')
+.text(lorem.slice(0, 555), {
+  width: doc.width,
+  align: 'left',
+  justify: 'end',
+  continued: true
+}
+).moveDown(0.3);
+
+doc.end();
+doc.pipe(res);
+
 });
 
 app.listen(port, () => {
