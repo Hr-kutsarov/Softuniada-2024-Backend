@@ -2,7 +2,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const PDFDocument = require('pdfkit');
-var bodyParser = require('body-parser')
+const moment = require('moment')
+var bodyParser = require('body-parser');
 
 dotenv.config();
 
@@ -17,8 +18,67 @@ app.get('/example', (req, res) => {
   res.send('Express + TypeScript Server');
 });
 
+const x = {
+  firstName: "John",
+  lastName: "Wick",
+  phoneNumber: "+23232323",
+  address: "123 Str. LoremIpsum",
+  color: "red",
+  orientation: "L",
+  width: "3",
+  height: "3",
+  quantity: "3",
+  price: "123",
+  description: "23",
+  drillHoles: "3",
+  hinges: "2",
+  express: "express" 
+}
 
-const lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in suscipit purus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vivamus nec hendrerit felis. Morbi aliquam facilisis risus eu lacinia. Sed eu leo in turpis fringilla hendrerit. Ut nec accumsan nisl. Suspendisse rhoncus nisl posuere tortor tempus et dapibus elit porta. Cras leo neque, elementum a rhoncus ut, vestibulum non nibh. Phasellus pretium justo turpis. Etiam vulputate, odio vitae tincidunt ultricies, eros odio dapibus nisi, ut tincidunt lacus arcu eu elit. Aenean velit erat, vehicula eget lacinia ut, dignissim non tellus. Aliquam nec lacus mi, sed vestibulum nunc. Suspendisse potenti. Curabitur vitae sem turpis. Vestibulum sed neque eget dolor dapibus porttitor at sit amet sem. Fusce a turpis lorem. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;';
+
+const dateValue = moment().format('DD/MM/YYYY hh:mm');
+
+const lorem = `As of today, Mr./Mrs. ${x.firstName} ${x.lastName}, with address ${x.address}, phone number: ${x.phoneNumber} has placed the following order.`;
+const lorem2 = `Materials with color: ${x.color} ${x.quantity} piece/s with specified width: ${x.width} m. and height ${x.height} m.`
+const lorem3 = `Drill holes: ${x.drillHoles}\nCuts: ${Number(x.quantity) * 2}\nHinges: ${x.hinges}\nOrientation: ${x.orientation === "L" ? "lengthwise" : "crosswise"}\n`
+
+const priceCutting = () => {
+  const PRICE = 1.49;
+  return Number(x.quantity) * 2 * PRICE
+}
+
+const priceDrilling = () => {
+  const PRICE = 0.99;
+  return Number(x.drillHoles) * PRICE
+}
+
+const calcArea = () => {
+  return Number(x.width) * Number(x.height) * Number(x.quantity)
+}
+
+const priceMaterial = () => {
+  const area = calcArea()
+  const price = area * Number(x.price)
+  return !!price ? price : null
+}
+
+// TODO laminating service
+const priceLamination = () => {
+  // unknown yet multiplier for number of sides
+  const x = '';
+  // 
+
+  return !!x ? x : 0
+}
+
+const finalPrice = () => {
+  const xx = priceCutting();
+  const xy = priceMaterial();
+  const xz = priceDrilling();
+  const yx = priceLamination();
+
+  return (xx + xy + xz + yx).toFixed(2).toString()
+}
 
 // get pdf
 app.get('/', (req, res) => {
@@ -30,52 +90,81 @@ app.get('/', (req, res) => {
       right: 72
 
   }});
+  // declare initial font size
   doc.fontSize(12);
-  doc.addPage({margin: 50})
+  // create the first page
+  doc.addPage({ margin: 50 })
+
+  if (x.express === "express") {
+    doc
+    .polygon([20, 0], [20, 60], [160, 60], [160, 0])
+    .fillAndStroke()
+  }
+
   doc
-  .fillColor('#666')
-  .text('Date: 01.01.2024', 24, 24, {
-    align: 'right',
+  .fontSize(16)
+  .font('Helvetica-Bold')
+  .fillColor('#fff')
+  .text('EXPRESS', 54, 24, {
+    align: 'left',
     width: doc.width
   })
+
+  doc
+  .font('Helvetica')
+  .fillColor('#666')
+  .text(`Date: ${dateValue}`, 24, 24, {
+    align: 'right',
+    width: doc.width
+  }).moveDown(3);
   
-
-  doc.moveDown(5);
-
-
   doc
   .fontSize(24)
   .fillColor('#111')
-  .text(`Example name of PDF file`, {
+  .text(`Order`, {
     width: doc.width,
     align: 'center'
   }
-  ).moveDown(0.2);
+  );
 
   doc
   .fontSize(16)
   .fillColor('#666')
-  .text(`123-abC`, {
+  .text(`No: ${x.phoneNumber}`, {
     width: doc.width,
     align: 'center'
   }
-  )
+  ).moveDown(2)
+  ;
+
+  doc
+  .fontSize(16)
+  .fillColor('black')
+  .text(lorem, {
+
+  }
+  ).moveDown(2);
+
+  doc
+  .fontSize(16)
+  .fillColor('black')
+  .text(lorem2)
   .moveDown(2);
 
   doc
   .fontSize(16)
   .fillColor('black')
-  .text(lorem.slice(0, 555), {
-    width: doc.width,
-    align: 'left',
-    justify: 'end',
-    continued: true
+  .text(lorem3, {
   }
-  ).moveDown(0.3);
+  ).moveDown(5);
 
+  doc
+  .fontSize(20)
+  .fillColor('black')
+  .text(`Total price: ${finalPrice()} BGN`, {
+  }
+  );
 
-  // draw bounding rectangle
-  // doc.rect(doc.x, doc.x, doc.x, doc.y).stroke();
     doc.end();
     doc.pipe(res);
 });
@@ -128,8 +217,10 @@ doc
   justify: 'end',
   continued: true
 }
-).moveDown(0.3);
+).moveDown(2)
 
+
+// END of file
 doc.end();
 doc.pipe(res);
 
